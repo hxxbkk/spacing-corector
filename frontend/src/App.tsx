@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 function App() {
   // 1. React가 '입력창'의 텍스트를 기억하게 함 (useState)
