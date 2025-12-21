@@ -14,24 +14,26 @@ okt = Okt()
 @app.route('/check', methods=['POST'])
 def check_spelling():
     try:
-        
         data = request.json
         original_text = data['text']
 
         pos_tags = okt.pos(original_text)
         checked_text = ""
-        for i, (word, pos) in enumerate(pos_tags):
-         if i== 0:   
-            checked_text += word
-            continue
         
-        # 조사, 어미, 구두점은 앞 단어에 붙여씀
-         if pos in ['Josa', 'Eomi', 'Punctuation']:
-             checked_text += word
-         else:
-             checked_text += " " + word
+        # 1. 띄어쓰기 교정 로직
+        for i, (word, pos) in enumerate(pos_tags):
+            if i == 0:   
+                checked_text += word
+                continue
             
-         pos_result = [f"('{word}', '{pos})" for word, pos in pos_tags]
+            # 조사, 어미, 구두점은 앞 단어에 붙여씀
+            if pos in ['Josa', 'Eomi', 'Punctuation']:
+                checked_text += word
+            else:
+                checked_text += " " + word
+        
+        # 2. 형태소 분석 결과 생성 (반복문 밖으로 이동하여 효율성 높임)
+        pos_result = [f"('{word}', '{pos}')" for word, pos in pos_tags]
 
         return jsonify({
             'original': original_text,
@@ -45,7 +47,6 @@ def check_spelling():
 
 if __name__ == '__main__':
     # Render 환경에서 포트를 자동으로 할당받도록 설정
-    import os
     print("AI 서버(Flask)가 실행 중입니다...")
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
