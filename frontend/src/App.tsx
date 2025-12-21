@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-// 1. 영어 품사명을 한국어로 바꿔주는 이름표 (컴포넌트 밖으로 이동)
 const POS_MAP: { [key: string]: string } = {
   Noun: '명사',
   Josa: '조사',
@@ -21,7 +20,8 @@ const POS_MAP: { [key: string]: string } = {
 function App() {
   const [originalText, setOriginalText] = useState('');
   const [checkedText, setCheckedText] = useState('');
-  // 품사 정보를 배열 형태로 저장하기 위해 초기값을 null로 설정합니다.
+
+  // 1. 타입을 [string, string][] | null 로 지정하고 초기값을 null로 둡니다.
   const [posTags, setPosTags] = useState<[string, string][] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,16 +30,14 @@ function App() {
 
     setIsLoading(true);
     setCheckedText('');
-    setPosTags(null);
+    setPosTags(null); // 분석 시작 시 결과창을 비웁니다.
 
     try {
       const response = await fetch(
         'https://spacing-corector.onrender.com/check',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: originalText }),
         }
       );
@@ -48,15 +46,13 @@ function App() {
 
       if (response.ok) {
         setCheckedText(data.checked);
-        // 서버에서 받아온 [단어, 품사] 배열을 상태에 저장합니다.
-        setPosTags(data.pos_tags);
+        setPosTags(data.pos_tags); // 배열 데이터를 안전하게 저장합니다.
       } else {
         setCheckedText(`오류: ${data.error}`);
       }
     } catch (error) {
-      console.error('서버 통신 오류:', error);
       setCheckedText(
-        'AI 서버에 연결할 수 없습니다. (서버가 깨어나는 중일 수 있으니 1분 뒤 다시 시도해 주세요!)'
+        'AI 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요!'
       );
     } finally {
       setIsLoading(false);
@@ -70,7 +66,7 @@ function App() {
           <div className="inline-block p-3 bg-purple-100 rounded-2xl mb-3 text-3xl">
             ✨
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-gray-800">
+          <h1 className="text-2xl font-black text-gray-800">
             지능형 띄어쓰기 교정기
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -78,44 +74,41 @@ function App() {
           </p>
         </header>
 
-        <div className="relative mb-4">
-          <textarea
-            className="w-full h-40 p-4 bg-white border-none rounded-2xl shadow-inner text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-purple-200 outline-none resize-none transition-all"
-            placeholder={
-              '검사할 내용을 입력하세요...\n(예: 아버지가방에들어가신다)'
-            }
-            value={originalText}
-            onChange={(e) => setOriginalText(e.target.value)}
-          />
-        </div>
+        <textarea
+          className="w-full h-40 p-4 bg-white border-none rounded-2xl shadow-inner text-gray-700 focus:ring-2 focus:ring-purple-200 outline-none resize-none mb-4"
+          placeholder="검사할 내용을 입력하세요..."
+          value={originalText}
+          onChange={(e) => setOriginalText(e.target.value)}
+        />
 
         <button
-          className={`w-full py-4 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-purple-200 active:scale-95 transition-all
-                     ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full py-4 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           onClick={handleCheck}
           disabled={isLoading}
         >
           {isLoading ? 'AI 분석 중...' : '검사 시작하기'}
         </button>
 
+        {/* 결과 영역: 데이터가 있을 때만 렌더링 */}
         {(checkedText || posTags) && (
-          <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* 1. 교정 결과 영역 */}
+          <div className="mt-8 space-y-4">
             {checkedText && (
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50">
-                <h2 className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">
+                <h2 className="text-xs font-bold text-purple-400 uppercase mb-2">
                   교정 결과
                 </h2>
-                <p className="text-gray-800 font-semibold text-lg leading-relaxed">
+                <p className="text-gray-800 font-semibold text-lg">
                   {checkedText}
                 </p>
               </div>
             )}
 
-            {/* 2. 한국어 품사 태깅 영역 (개선된 디자인) */}
-            {posTags && (
+            {/* 🔥 핵심 수정: Array.isArray로 한 번 더 보호합니다. */}
+            {Array.isArray(posTags) && (
               <div className="bg-purple-50/50 rounded-2xl p-5 border border-dashed border-purple-200">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                <h2 className="text-xs font-bold text-gray-400 uppercase mb-3">
                   AI 분석 증거 (품사 태깅)
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -127,7 +120,7 @@ function App() {
                       <span className="text-sm font-bold text-gray-700">
                         {word}
                       </span>
-                      <span className="ml-1.5 text-[10px] text-purple-500 font-medium bg-purple-50 px-1 rounded border border-purple-100">
+                      <span className="ml-1.5 text-[10px] text-purple-500 font-medium bg-purple-50 px-1 rounded">
                         {POS_MAP[tag] || tag}
                       </span>
                     </div>
@@ -139,7 +132,7 @@ function App() {
         )}
 
         <footer className="mt-8 text-center text-[10px] text-gray-400">
-          © 2025 AI Korean Spacing Project · Powered by KoNLPy
+          © 2025 AI Korean Spacing Project
         </footer>
       </div>
     </div>
