@@ -50,6 +50,7 @@ conda activate koreanspell
 python app.py# spacing-corector
 
 ### Frontend
+```bash
 cd frotend
 npm install
 npm run dev 
