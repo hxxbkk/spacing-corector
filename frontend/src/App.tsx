@@ -1,28 +1,10 @@
 import { useState } from 'react';
 
-const POS_MAP: { [key: string]: string } = {
-  Noun: '명사',
-  Josa: '조사',
-  Adverb: '부사',
-  Adjective: '형용사',
-  Verb: '동사',
-  Punctuation: '구두점',
-  Modifier: '관형사',
-  Conjunction: '접속사',
-  Exclamation: '감탄사',
-  Number: '숫자',
-  Foreign: '외국어',
-  Alpha: '알파벳',
-  Suffix: '접미사',
-  Unknown: '미분류',
-};
-
 function App() {
   const [originalText, setOriginalText] = useState('');
   const [checkedText, setCheckedText] = useState('');
-
-  // 1. 타입을 [string, string][] | null 로 지정하고 초기값을 null로 둡니다.
-  const [posTags, setPosTags] = useState<[string, string][] | null>(null);
+  // 1. 다시 단순한 문자열 상태로 되돌립니다.
+  const [posTags, setPosTags] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheck = async () => {
@@ -30,7 +12,7 @@ function App() {
 
     setIsLoading(true);
     setCheckedText('');
-    setPosTags(null); // 분석 시작 시 결과창을 비웁니다.
+    setPosTags('');
 
     try {
       const response = await fetch(
@@ -46,7 +28,8 @@ function App() {
 
       if (response.ok) {
         setCheckedText(data.checked);
-        setPosTags(data.pos_tags); // 배열 데이터를 안전하게 저장합니다.
+        // 2. 서버에서 받은 데이터를 그대로 글자로 넣습니다.
+        setPosTags(String(data.pos_tags));
       } else {
         setCheckedText(`오류: ${data.error}`);
       }
@@ -66,11 +49,9 @@ function App() {
           <div className="inline-block p-3 bg-purple-100 rounded-2xl mb-3 text-3xl">
             ✨
           </div>
-          <h1 className="text-2xl font-black text-gray-800">
-            지능형 띄어쓰기 교정기
-          </h1>
+          <h1 className="text-2xl font-black text-gray-800">띄어쓰기 교정기</h1>
           <p className="text-sm text-gray-500 mt-1">
-            AI 형태소 분석 기반 맞춤법 검사
+            포트폴리오용 지능형 검사기
           </p>
         </header>
 
@@ -91,48 +72,35 @@ function App() {
           {isLoading ? 'AI 분석 중...' : '검사 시작하기'}
         </button>
 
-        {/* 결과 영역: 데이터가 있을 때만 렌더링 */}
         {(checkedText || posTags) && (
           <div className="mt-8 space-y-4">
             {checkedText && (
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50">
-                <h2 className="text-xs font-bold text-purple-400 uppercase mb-2">
+                <h2 className="text-xs font-bold text-purple-400 uppercase mb-2 text-left">
                   교정 결과
                 </h2>
-                <p className="text-gray-800 font-semibold text-lg">
+                <p className="text-gray-800 font-medium text-left">
                   {checkedText}
                 </p>
               </div>
             )}
 
-            {/* 🔥 핵심 수정: Array.isArray로 한 번 더 보호합니다. */}
-            {Array.isArray(posTags) && (
+            {/* 3. 다시 예전처럼 텍스트 형식으로만 보여주는 부분입니다. */}
+            {posTags && (
               <div className="bg-purple-50/50 rounded-2xl p-5 border border-dashed border-purple-200">
-                <h2 className="text-xs font-bold text-gray-400 uppercase mb-3">
-                  AI 분석 증거 (품사 태깅)
+                <h2 className="text-xs font-bold text-gray-400 uppercase mb-2 text-left">
+                  분석 증거 (POS)
                 </h2>
-                <div className="flex flex-wrap gap-2">
-                  {posTags.map(([word, tag], index) => (
-                    <div
-                      key={index}
-                      className="inline-flex items-center bg-white px-2 py-1 rounded-lg border border-purple-100 shadow-sm"
-                    >
-                      <span className="text-sm font-bold text-gray-700">
-                        {word}
-                      </span>
-                      <span className="ml-1.5 text-[10px] text-purple-500 font-medium bg-purple-50 px-1 rounded">
-                        {POS_MAP[tag] || tag}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-gray-500 text-xs font-mono break-words leading-tight text-left">
+                  {posTags}
+                </p>
               </div>
             )}
           </div>
         )}
 
-        <footer className="mt-8 text-center text-[10px] text-gray-400">
-          © 2025 AI Korean Spacing Project
+        <footer className="mt-8 text-center text-[10px] text-gray-300">
+          © 2025 AI Auto-Correction Project
         </footer>
       </div>
     </div>
