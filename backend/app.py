@@ -47,5 +47,7 @@ def check_spelling():
 
 # 4. '웨이터(Flask)'가 주문을 받기 시작 (서버 실행)
 if __name__ == '__main__':
+    import os
     print("AI 서버(Flask)가 5000번 포트에서 실행 중입니다...")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
