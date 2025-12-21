@@ -48,9 +48,11 @@
 cd backend
 conda activate koreanspell
 python app.py# spacing-corector
+```
 
-### Frontend
+### frontend
 ```bash
-cd frotend
+cd frontend
 npm install
-npm run dev 
+npm run dev
+```
