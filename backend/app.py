@@ -1,21 +1,20 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from konlpy.tag import Okt
 import logging
+import os
 
-# 1. Flask('웨이터')와 KoNLPy('요리사') 준비
 app = Flask(__name__)
+
+# 모든 도메인(*)에서 오는 요청을 허용하여 Vercel과의 통신 에러를 방지합니다.
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 okt = Okt()
 
-# 2. CORS 설정 (매우 중요!)
-# React(다른 동네)에서 오는 주문을 받을 수 있게 허용해 줍니다.
-from flask_cors import CORS
-CORS(app) 
-
-# 3. '/check'라는 주소로 '주문(POST)'이 오면 이 함수를 실행
 @app.route('/check', methods=['POST'])
 def check_spelling():
     try:
-        # 손님(React)이 보낸 '주문서(JSON)'에서 'text' 내용물 꺼내기
+        
         data = request.json
         original_text = data['text']
 
@@ -26,6 +25,7 @@ def check_spelling():
             checked_text += word
             continue
         
+        # 조사, 어미, 구두점은 앞 단어에 붙여씀
          if pos in ['Josa', 'Eomi', 'Punctuation']:
              checked_text += word
          else:
@@ -33,8 +33,6 @@ def check_spelling():
             
          pos_result = [f"('{word}', '{pos})" for word, pos in pos_tags]
 
-
-        # 요리(결과)를 손님(React)에게 돌려주기
         return jsonify({
             'original': original_text,
             'checked': checked_text,
@@ -45,9 +43,9 @@ def check_spelling():
         logging.error(f"Error processing request: {e}")
         return jsonify({'error': str(e)}), 500
 
-# 4. '웨이터(Flask)'가 주문을 받기 시작 (서버 실행)
 if __name__ == '__main__':
+    # Render 환경에서 포트를 자동으로 할당받도록 설정
     import os
-    print("AI 서버(Flask)가 5000번 포트에서 실행 중입니다...")
+    print("AI 서버(Flask)가 실행 중입니다...")
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

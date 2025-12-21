@@ -23,14 +23,16 @@ function App() {
 
     // 백엔드(AI 서버)와 통신 시작!
     try {
-      // 🚨 중요: 우리 AI 서버(Flask)는 5000번 포트에서 실행 중입니다.
-      const response = await fetch('http://127.0.0.1:5000/check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: originalText }), // 입력창 텍스트를 AI 서버로 전송
-      });
+      const response = await fetch(
+        'https://spacing-corector.onrender.com/check',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: originalText }), // 입력창 텍스트를 AI 서버로 전송
+        }
+      );
 
       const data = await response.json();
 
